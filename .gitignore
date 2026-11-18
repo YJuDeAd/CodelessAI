@@ -1,6 +1,7 @@
 # python files
 .venv/
 __pycache__/
+.python-version
 
 # node files
 node_modules/
