@@ -1,0 +1,25 @@
+# python files
+.venv/
+_pycache_/
+
+# node files
+node_modules/
+
+# environmental files
+.env
+
+# database
+.sqlite
+
+# storage files
+storage/datasets/*
+storage/checkpoints/*
+storage/models/*
+
+# keep the storage folders
+!storage/datasets/.gitkeep
+!storage/checkpoints/.gitkeep
+!storage/models/.gitkeep
+
+# local state files
+.DS_Store
