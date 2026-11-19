@@ -53,3 +53,18 @@ Training and fine-tuning AI models usually requires wrestling with Python enviro
 |   Hardware Telemetry    |            `nvidia-ml-py` (`pynvml`) + `psutil`             |                     Reads exact GPU VRAM, utilization, temperature, and system specs.                      |
 |     Data Processing     |              Polars + Hugging Face `datasets`               |         Fast dataset loading, statistical profiling, and point-and-click cleaning transformations.         |
 | ML & Fine-Tuning Engine |                 PyTorch + Unsloth + Optuna                  | Custom training loops, memory-efficient single-GPU fine-tuning, and automated hyperparameter optimization. |
+
+## How to Run:
+
+### Redis Setup
+```bash
+docker pull redis:alpine
+docker run -d --name codeless-redis -p 6379:6379 redis:alpine --restart unless-stopped
+```
+
+### Backend Setup
+```bash
+cd backend
+uv sync
+uv run uvicorn app.main:app --reload
+```
