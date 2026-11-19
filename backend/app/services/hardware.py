@@ -1,4 +1,6 @@
 from pydantic import BaseModel
+from app.config import app_config
+import psutil
 
 class GPUInfo(BaseModel):
     index: int
@@ -23,3 +25,30 @@ class HardwareInfo(BaseModel):
     driver_version: str | None
     gpus: list[GPUInfo]
     system: SystemInfo
+
+
+to_gb = 1024**3
+
+def system_info_extractor() -> SystemInfo:
+    # CPU Info
+    physical_cores = psutil.cpu_count(logical=False)
+    logical_cores = psutil.cpu_count(logical=True)
+    cpu_utilization = psutil.cpu_percent(interval=0.5)
+
+    # Ram Info
+    total_ram = round((psutil.virtual_memory().total / to_gb), 2)
+    available_ram = round((psutil.virtual_memory().available / to_gb), 2)
+
+    # Disk Info
+    total_disk = round((psutil.disk_usage(str(app_config.STORAGE_DIR)).total / to_gb), 2)
+    available_disk = round((psutil.disk_usage(str(app_config.STORAGE_DIR)).free / to_gb), 2)
+
+    return SystemInfo(
+        cpu_cores_physical=physical_cores,
+        cpu_cores_logical=logical_cores,
+        cpu_utilization_percentage=cpu_utilization,
+        ram_total_gb=total_ram,
+        ram_available_gb=available_ram,
+        disk_total_gb=total_disk,
+        disk_available_gb=available_disk
+    )
