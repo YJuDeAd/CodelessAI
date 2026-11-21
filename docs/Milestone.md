@@ -1,7 +1,7 @@
 # Milestones
 
 ## 1) The Juice Engine
-- [ ] **Build Local GPU & System Specs Reader**
+- [x] **Build Local GPU & System Specs Reader**
     - **GPU Metrics:** Model name, total/free VRAM, utilization %, and temperature
     - **System Metrics:** Total/available RAM, CPU core count, and disk space
     - **Resilience:** Include graceful CPU-only fallback when no GPU is detected
