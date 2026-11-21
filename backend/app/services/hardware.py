@@ -93,3 +93,14 @@ def gpu_info_extractor() -> tuple[bool, str | None, list[GPUInfo]]:
             pynvml.nvmlShutdown()
     except pynvml.NVMLError:
         return (False, None, [])
+
+def hardware_info_extractor() -> HardwareInfo:
+    gpu_available, driver_version, gpus = gpu_info_extractor()
+    system = system_info_extractor()
+
+    return HardwareInfo (
+        gpu_available=gpu_available,
+        driver_version=driver_version,
+        gpus=gpus,
+        system=system
+    )
