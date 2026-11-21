@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from app.config import app_config
 import psutil
+import pynvml
 
 class GPUInfo(BaseModel):
     index: int
@@ -28,6 +29,7 @@ class HardwareInfo(BaseModel):
 
 
 to_gb = 1024**3
+to_mb = 1024**2
 
 def system_info_extractor() -> SystemInfo:
     # CPU Info
@@ -36,12 +38,14 @@ def system_info_extractor() -> SystemInfo:
     cpu_utilization = psutil.cpu_percent(interval=0.5)
 
     # Ram Info
-    total_ram = round((psutil.virtual_memory().total / to_gb), 2)
-    available_ram = round((psutil.virtual_memory().available / to_gb), 2)
+    ram = psutil.virtual_memory()
+    total_ram = round((ram.total / to_gb), 2)
+    available_ram = round((ram.available / to_gb), 2)
 
     # Disk Info
-    total_disk = round((psutil.disk_usage(str(app_config.STORAGE_DIR)).total / to_gb), 2)
-    available_disk = round((psutil.disk_usage(str(app_config.STORAGE_DIR)).free / to_gb), 2)
+    disk = psutil.disk_usage(str(app_config.STORAGE_DIR))
+    total_disk = round((disk.total / to_gb), 2)
+    available_disk = round((disk.free / to_gb), 2)
 
     return SystemInfo(
         cpu_cores_physical=physical_cores,
@@ -52,3 +56,40 @@ def system_info_extractor() -> SystemInfo:
         disk_total_gb=total_disk,
         disk_available_gb=available_disk
     )
+
+def gpu_info_extractor() -> tuple[bool, str | None, list[GPUInfo]]:
+    try:
+        pynvml.nvmlInit()
+        try:
+            driver_version = pynvml.nvmlSystemGetDriverVersion()
+            gpus: list[GPUInfo] = []
+            for i in range(pynvml.nvmlDeviceGetCount()):
+                handle = pynvml.nvmlDeviceGetHandleByIndex(i)
+                name = pynvml.nvmlDeviceGetName(handle)
+                vram = pynvml.nvmlDeviceGetMemoryInfo(handle)
+                total_vram = round((vram.total / to_mb), 2)
+                free_vram = round((vram.free / to_mb), 2)
+                used_vram = round((vram.used / to_mb), 2)
+                gpu_utilization = pynvml.nvmlDeviceGetUtilizationRates(handle).gpu
+                
+                try:
+                    gpu_temp = pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)
+                except pynvml.NVMLError:
+                    gpu_temp = None
+                
+                gpu = GPUInfo(
+                    index=i,
+                    name=name,
+                    vram_total_mb=total_vram,
+                    vram_free_mb=free_vram,
+                    vram_used_mb=used_vram,
+                    utilization_percentage=gpu_utilization,
+                    temperature_c=gpu_temp
+                )
+                
+                gpus.append(gpu)
+            return (True, driver_version, gpus)
+        finally:
+            pynvml.nvmlShutdown()
+    except pynvml.NVMLError:
+        return (False, None, [])
