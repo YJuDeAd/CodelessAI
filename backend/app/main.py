@@ -8,7 +8,6 @@ from app.services.redis import ping_redis, close_redis
 from app.db.database import check_db_health, init_db
 from app.config import app_config
 
-from app.api.hardware import hardware_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -29,8 +28,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-app.include_router(hardware_router)
 
 @app.get("/health")
 async def health_check():
